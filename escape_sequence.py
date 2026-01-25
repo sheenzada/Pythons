@@ -1,0 +1,7 @@
+print ("hello \"world\" world")
+print ('I\'m inam ullah')
+print ("Line A \b Line B")
+#print ("Line A")
+#print ('Line B')
+print ('this is double  backslash\\\\')
+print ('Helll\b\blo')
