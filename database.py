@@ -1,13 +1,30 @@
+# import sqlite3
+
+# class Database:
+#     def __init__(self):
+#         self.conn = sqlite3.connect("data/users.db")
+#         self.cursor = self.conn.cursor()
+#         self.cursor.execute("""
+#             CREATE TABLE IF NOT EXISTS users (
+#                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+#                 username TEXT UNIQUE,
+#                 password TEXT,
+#                 role TEXT DEFAULT 'User'
+#             )
+#         """)
+#         self.conn.commit()
+
 import sqlite3
-import hashlib
+import os
 
 class Database:
-    def __init__(self, db_name="system.db"):
-        self.conn = sqlite3.connect(db_name)
-        self.cursor = self.conn.cursor()
-        self.create_table()
+    def __init__(self):
+        # Ensure data folder exists
+        if not os.path.exists("data"):
+            os.makedirs("data")
 
-    def create_table(self):
+        self.conn = sqlite3.connect("data/users.db")
+        self.cursor = self.conn.cursor()
         self.cursor.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,22 +35,20 @@ class Database:
         """)
         self.conn.commit()
 
-    def hash_password(self, password):
-        return hashlib.sha256(password.encode()).hexdigest()
+
+
 
     def register_user(self, username, password):
         try:
-            hashed = self.hash_password(password)
-            self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, hashed))
+            self.cursor.execute("INSERT INTO users (username, password) VALUES (?, ?)", (username, password))
             self.conn.commit()
-            return True, "Registration Successful"
-        except sqlite3.IntegrityError:
-            return False, "Username already exists"
+            return True
+        except:
+            return False
 
     def login_user(self, username, password):
-        hashed = self.hash_password(password)
-        self.cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, hashed))
-        return self.cursor.fetchone()
+        self.cursor.execute("SELECT * FROM users WHERE username=? AND password=?", (username, password))
+        return self.cursor.fetchone() is not None
 
     def get_all_users(self):
         self.cursor.execute("SELECT username, role FROM users")
