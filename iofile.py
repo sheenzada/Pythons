@@ -1,6 +1,4 @@
 # open function
-# readlines method
-# close method
 
 
 ## ..................readfile ............
@@ -43,8 +41,27 @@
 
 
 ## ........... readline method ............
-f = open('file 1.txt')
-print(f.readline() , end='')
-print(f.readline())
-print(f.readline())
+
+# f = open('file 1.txt')
+# print(f.readline() , end='')
+# print(f.readline())
+# print(f.readline())
+# f.close()
+
+
+## .......... readlines method .................
+
+# f = open('file 1.txt')
+# lines = f.readlines()
+# for line in lines:
+#     print(line, end='')
+# f.close()
+
+
+## .............. close method ..............
+f= open(r"E:\new_folder\file1.txt")
+print(f.closed)
+# print(f.name)
 f.close()
+
+print(f.closed)
