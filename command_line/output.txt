@@ -1,0 +1,4 @@
+Inam's salary is 100
+ Akash's salary is 50
+ Tajwar's salary is 200
+ Yaseen's salary is 500 

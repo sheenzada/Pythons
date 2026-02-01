@@ -1,0 +1,4 @@
+Inam,100
+Akash,50
+Tajwar,200
+Yaseen,500
