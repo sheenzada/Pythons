@@ -39,11 +39,30 @@ gender_combobox.grid(row=3 , column=1)
 user_type = tk.StringVar()
 radiobtn1 =  ttk.Radiobutton(win, text='Student' , value='Student' , variable=user_type)
 radiobtn1.grid(row=4 , column=0)
-# def action ():
-#     user_name = name_var.get()
-#     user_age = age_var.get()
-#     user_email = email_var.get()
-#     print(f' {user_name} is {user_age} years old, {user_email} ')
-# submit_btn = ttk.Button(win , text='Sumbit' , command=action)
-# submit_btn.grid(row=3 , column=0)
+
+radiobtn2 = ttk.Radiobutton(win, text='Teacher' , value = 'Teacher' , variable=user_type)
+radiobtn2.grid(row= 5 , column=0)
+
+# Check Button
+checkbtn_var = tk.IntVar()
+
+checkbtn = ttk.Checkbutton(win , text='check if you want to subscribe to our newsletter' , variable=checkbtn_var)
+checkbtn.grid(row=6 , columnspan=3)
+
+
+
+def action ():
+    user_name = name_var.get()
+    user_age = age_var.get()
+    user_email = email_var.get()
+    print(f' {user_name} is {user_age} years old, {user_email} ')
+    user_gender = gender_var.get()
+    user_type = user_type.get()
+    if checkbtn_var.get() == 0:
+        subscribed = 'NO'
+    else:
+        subscribed = 'Yes'
+    print(user_gender , user_type , subscribed)
+submit_btn = ttk.Button(win , text='Sumbit' , command=action)
+submit_btn.grid(row=8 , column=0)
 win.mainloop()

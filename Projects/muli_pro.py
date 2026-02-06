@@ -11,6 +11,7 @@ win.resizable(False, False)
 style = ttk.Style()
 style.theme_use("clam")
 
+
 style.configure(
     "Custom.TButton",
     font=("Arial", 11, "bold"),
