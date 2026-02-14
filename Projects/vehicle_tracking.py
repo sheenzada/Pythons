@@ -1,164 +1,265 @@
+# import cv2
+# import numpy as np
+# from ultralytics import YOLO
+# from collections import OrderedDict
+# import math
+
+# # -----------------------------
+# # Simple Centroid Tracker
+# # -----------------------------
+# class CentroidTracker:
+#     def __init__(self, max_disappeared=40):
+#         self.next_object_id = 0
+#         self.objects = OrderedDict()
+#         self.disappeared = OrderedDict()
+#         self.max_disappeared = max_disappeared
+
+#     def register(self, centroid):
+#         self.objects[self.next_object_id] = centroid
+#         self.disappeared[self.next_object_id] = 0
+#         self.next_object_id += 1
+
+#     def deregister(self, object_id):
+#         del self.objects[object_id]
+#         del self.disappeared[object_id]
+
+#     def update(self, rects):
+#         if len(rects) == 0:
+#             for object_id in list(self.disappeared.keys()):
+#                 self.disappeared[object_id] += 1
+#                 if self.disappeared[object_id] > self.max_disappeared:
+#                     self.deregister(object_id)
+#             return self.objects
+
+#         input_centroids = np.zeros((len(rects), 2), dtype="int")
+
+#         for (i, (startX, startY, endX, endY)) in enumerate(rects):
+#             cX = int((startX + endX) / 2.0)
+#             cY = int((startY + endY) / 2.0)
+#             input_centroids[i] = (cX, cY)
+
+#         if len(self.objects) == 0:
+#             for i in range(len(input_centroids)):
+#                 self.register(input_centroids[i])
+#         else:
+#             object_ids = list(self.objects.keys())
+#             object_centroids = list(self.objects.values())
+
+#             D = np.linalg.norm(np.array(object_centroids)[:, np.newaxis] - input_centroids, axis=2)
+
+#             rows = D.min(axis=1).argsort()
+#             cols = D.argmin(axis=1)[rows]
+
+#             used_rows = set()
+#             used_cols = set()
+
+#             for (row, col) in zip(rows, cols):
+#                 if row in used_rows or col in used_cols:
+#                     continue
+
+#                 object_id = object_ids[row]
+#                 self.objects[object_id] = input_centroids[col]
+#                 self.disappeared[object_id] = 0
+
+#                 used_rows.add(row)
+#                 used_cols.add(col)
+
+#             unused_rows = set(range(0, D.shape[0])).difference(used_rows)
+#             unused_cols = set(range(0, len(input_centroids))).difference(used_cols)
+
+#             if D.shape[0] >= len(input_centroids):
+#                 for row in unused_rows:
+#                     object_id = object_ids[row]
+#                     self.disappeared[object_id] += 1
+#                     if self.disappeared[object_id] > self.max_disappeared:
+#                         self.deregister(object_id)
+#             else:
+#                 for col in unused_cols:
+#                     self.register(input_centroids[col])
+
+#         return self.objects
+
+
+# # -----------------------------
+# # Load YOLO Model
+# # -----------------------------
+# model = YOLO("yolov8n.pt")  # downloads automatically
+
+# # Vehicle class IDs in COCO dataset
+# VEHICLE_CLASSES = [2, 3, 5, 7]  # car, motorcycle, bus, truck
+
+# # -----------------------------
+# # Video Source
+# # -----------------------------
+# video_path = "video.mp4"  # Change to 0 for webcam
+# cap = cv2.VideoCapture(video_path)
+
+# tracker = CentroidTracker()
+
+# # -----------------------------
+# # Main Loop
+# # -----------------------------
+# while True:
+#     ret, frame = cap.read()
+#     if not ret:
+#         break
+
+#     results = model(frame)[0]
+
+#     rects = []
+
+#     for box in results.boxes:
+#         cls_id = int(box.cls[0])
+#         if cls_id in VEHICLE_CLASSES:
+#             x1, y1, x2, y2 = map(int, box.xyxy[0])
+#             rects.append((x1, y1, x2, y2))
+
+#             cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
+
+#     objects = tracker.update(rects)
+
+#     for (object_id, centroid) in objects.items():
+#         text = f"ID {object_id}"
+#         cv2.putText(frame, text, (centroid[0] - 10, centroid[1] - 10),
+#                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+#         cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 0, 255), -1)
+
+#     cv2.imshow("Vehicle Tracking", frame)
+
+#     if cv2.waitKey(1) & 0xFF == ord("q"):
+#         break
+
+# cap.release()
+# cv2.destroyAllWindows()
+
+
+
+
+
+
 import cv2
 import numpy as np
 from ultralytics import YOLO
-from scipy.optimize import linear_sum_assignment
-from filterpy.kalman import KalmanFilter
+from collections import OrderedDict
 
-# ================= SORT TRACKER =================
+# -----------------------------
+# Simple Centroid Tracker
+# -----------------------------
+class CentroidTracker:
+    def __init__(self, max_disappeared=40):
+        self.next_object_id = 0
+        self.objects = OrderedDict()
+        self.disappeared = OrderedDict()
+        self.max_disappeared = max_disappeared
 
-def iou(bb_test, bb_gt):
-    xx1 = np.maximum(bb_test[0], bb_gt[0])
-    yy1 = np.maximum(bb_test[1], bb_gt[1])
-    xx2 = np.minimum(bb_test[2], bb_gt[2])
-    yy2 = np.minimum(bb_test[3], bb_gt[3])
-    w = np.maximum(0., xx2 - xx1)
-    h = np.maximum(0., yy2 - yy1)
-    wh = w * h
-    return wh / ((bb_test[2]-bb_test[0])*(bb_test[3]-bb_test[1])
-                 + (bb_gt[2]-bb_gt[0])*(bb_gt[3]-bb_gt[1]) - wh)
+    def register(self, centroid):
+        self.objects[self.next_object_id] = centroid
+        self.disappeared[self.next_object_id] = 0
+        self.next_object_id += 1
 
-class KalmanBoxTracker:
-    count = 0
+    def deregister(self, object_id):
+        del self.objects[object_id]
+        del self.disappeared[object_id]
 
-    def __init__(self, bbox):
-        self.kf = KalmanFilter(dim_x=7, dim_z=4)
-        self.kf.F = np.array([
-            [1,0,0,0,1,0,0],
-            [0,1,0,0,0,1,0],
-            [0,0,1,0,0,0,1],
-            [0,0,0,1,0,0,0],
-            [0,0,0,0,1,0,0],
-            [0,0,0,0,0,1,0],
-            [0,0,0,0,0,0,1]
-        ])
-        self.kf.H = np.array([
-            [1,0,0,0,0,0,0],
-            [0,1,0,0,0,0,0],
-            [0,0,1,0,0,0,0],
-            [0,0,0,1,0,0,0]
-        ])
-        self.kf.x[:4] = bbox.reshape((4,1))
-        self.time_since_update = 0
-        self.id = KalmanBoxTracker.count
-        KalmanBoxTracker.count += 1
+    def update(self, rects):
+        if len(rects) == 0:
+            for object_id in list(self.disappeared.keys()):
+                self.disappeared[object_id] += 1
+                if self.disappeared[object_id] > self.max_disappeared:
+                    self.deregister(object_id)
+            return self.objects
 
-    def update(self, bbox):
-        self.time_since_update = 0
-        self.kf.update(bbox)
+        input_centroids = np.zeros((len(rects), 2), dtype="int")
+        for i, (x1, y1, x2, y2) in enumerate(rects):
+            input_centroids[i] = ((x1 + x2)//2, (y1 + y2)//2)
 
-    def predict(self):
-        self.time_since_update += 1
-        self.kf.predict()
-        return self.kf.x[:4].reshape((4,))
-
-class Sort:
-    def __init__(self, max_age=10, iou_threshold=0.3):
-        self.trackers = []
-        self.max_age = max_age
-        self.iou_threshold = iou_threshold
-
-    def update(self, dets):
-        trks = np.zeros((len(self.trackers), 4))
-        for t, trk in enumerate(trks):
-            trks[t] = self.trackers[t].predict()
-
-        matched, unmatched_dets, unmatched_trks = associate_detections_to_trackers(
-            dets, trks, self.iou_threshold)
-
-        for m in matched:
-            self.trackers[m[1]].update(dets[m[0], :4])
-
-        for i in unmatched_dets:
-            self.trackers.append(KalmanBoxTracker(dets[i, :4]))
-
-        i = len(self.trackers)
-        for trk in reversed(self.trackers):
-            i -= 1
-            if trk.time_since_update > self.max_age:
-                self.trackers.pop(i)
-
-        ret = []
-        for trk in self.trackers:
-            d = trk.kf.x[:4].reshape((4,))
-            ret.append(np.concatenate((d, [trk.id])))
-        return np.array(ret)
-
-def associate_detections_to_trackers(detections, trackers, iou_threshold):
-    if len(trackers) == 0:
-        return [], np.arange(len(detections)), []
-
-    iou_matrix = np.zeros((len(detections), len(trackers)), dtype=np.float32)
-    for d in range(len(detections)):
-        for t in range(len(trackers)):
-            iou_matrix[d,t] = iou(detections[d], trackers[t])
-
-    matched_indices = linear_sum_assignment(-iou_matrix)
-    matched_indices = np.array(list(zip(*matched_indices)))
-
-    unmatched_detections = []
-    for d in range(len(detections)):
-        if d not in matched_indices[:,0]:
-            unmatched_detections.append(d)
-
-    unmatched_trackers = []
-    for t in range(len(trackers)):
-        if t not in matched_indices[:,1]:
-            unmatched_trackers.append(t)
-
-    matches = []
-    for m in matched_indices:
-        if iou_matrix[m[0], m[1]] < iou_threshold:
-            unmatched_detections.append(m[0])
-            unmatched_trackers.append(m[1])
+        if len(self.objects) == 0:
+            for centroid in input_centroids:
+                self.register(centroid)
         else:
-            matches.append(m.reshape(1,2))
+            object_ids = list(self.objects.keys())
+            object_centroids = list(self.objects.values())
 
-    if len(matches) == 0:
-        matches = np.empty((0,2), dtype=int)
-    else:
-        matches = np.concatenate(matches, axis=0)
+            D = np.linalg.norm(np.array(object_centroids)[:, np.newaxis] - input_centroids, axis=2)
+            rows = D.min(axis=1).argsort()
+            cols = D.argmin(axis=1)[rows]
 
-    return matches, np.array(unmatched_detections), np.array(unmatched_trackers)
+            used_rows = set()
+            used_cols = set()
+            for row, col in zip(rows, cols):
+                if row in used_rows or col in used_cols:
+                    continue
+                object_id = object_ids[row]
+                self.objects[object_id] = input_centroids[col]
+                self.disappeared[object_id] = 0
+                used_rows.add(row)
+                used_cols.add(col)
 
-# ================= MAIN PROGRAM =================
+            unused_rows = set(range(D.shape[0])) - used_rows
+            unused_cols = set(range(len(input_centroids))) - used_cols
 
-model = YOLO("yolov8n.pt")
-tracker = Sort()
+            if D.shape[0] >= len(input_centroids):
+                for row in unused_rows:
+                    object_id = object_ids[row]
+                    self.disappeared[object_id] += 1
+                    if self.disappeared[object_id] > self.max_disappeared:
+                        self.deregister(object_id)
+            else:
+                for col in unused_cols:
+                    self.register(input_centroids[col])
 
-VEHICLE_CLASSES = [2, 3, 5, 7]  # car, motorcycle, bus, truck
+        return self.objects
 
-cap = cv2.VideoCapture("traffic.mp4")  # use 0 for webcam
+# -----------------------------
+# Load YOLO Model
+# -----------------------------
+model = YOLO("yolov8n.pt")  # YOLOv8 small model
 
+# Vehicle class IDs in COCO dataset (car, motorcycle, bus, truck)
+VEHICLE_CLASSES = [2, 3, 5, 7]
+
+# -----------------------------
+# Video Source
+# -----------------------------
+video_path = r"D:/Pythons/Projects/video.mp4"  # Replace with your video path
+# video_path = 0  # Use this line for webcam
+
+cap = cv2.VideoCapture(video_path)
+if not cap.isOpened():
+    print("Error: Cannot open video or webcam.")
+    exit()
+
+tracker = CentroidTracker()
+
+# -----------------------------
+# Main Loop
+# -----------------------------
 while True:
     ret, frame = cap.read()
     if not ret:
+        print("End of video or cannot read frame.")
         break
 
-    detections = []
-
     results = model(frame)[0]
+    rects = []
 
     for box in results.boxes:
-        cls = int(box.cls[0])
-        conf = float(box.conf[0])
-
-        if cls in VEHICLE_CLASSES and conf > 0.4:
+        cls_id = int(box.cls[0])
+        if cls_id in VEHICLE_CLASSES:
             x1, y1, x2, y2 = map(int, box.xyxy[0])
-            detections.append([x1, y1, x2, y2])
+            rects.append((x1, y1, x2, y2))
+            cv2.rectangle(frame, (x1, y1), (x2, y2), (0, 255, 0), 2)
 
-    detections = np.array(detections)
+    objects = tracker.update(rects)
 
-    tracks = tracker.update(detections)
+    for object_id, centroid in objects.items():
+        cv2.putText(frame, f"ID {object_id}", (centroid[0]-10, centroid[1]-10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        cv2.circle(frame, (centroid[0], centroid[1]), 4, (0, 0, 255), -1)
 
-    for track in tracks:
-        x1, y1, x2, y2, track_id = map(int, track)
-        cv2.rectangle(frame, (x1,y1), (x2,y2), (0,255,0), 2)
-        cv2.putText(frame, f"ID {track_id}", (x1, y1-10),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,255,0), 2)
+    cv2.imshow("Vehicle Tracking", frame)
 
-    cv2.imshow("Vehicle Detection & Tracking", frame)
-
-    if cv2.waitKey(1) & 0xFF == 27:
+    if cv2.waitKey(1) & 0xFF == ord("q"):
         break
 
 cap.release()
