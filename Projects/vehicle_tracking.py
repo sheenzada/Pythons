@@ -221,7 +221,7 @@ VEHICLE_CLASSES = [2, 3, 5, 7]
 # -----------------------------
 # Video Source
 # -----------------------------
-video_path = r"D:/Pythons/Projects/video.mp4"  # Replace with your video path
+video_path = r"e:\friends\VID_20251101_124200.mp4"  # Replace with your video path
 # video_path = 0  # Use this line for webcam
 
 cap = cv2.VideoCapture(video_path)
