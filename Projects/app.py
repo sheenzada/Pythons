@@ -2,7 +2,7 @@
 # from sketchpy import library
 # obj = library.gojo()
 # obj = draw()
-from sket import library
+from app import library
 
 obj = library.rdj()
 obj.draw()
