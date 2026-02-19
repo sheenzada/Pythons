@@ -38,13 +38,13 @@ gender_combobox.grid(row=3 , column=1)
 
 # create button
 
-# def action():
+def action():
     
-#     username = name_var.get()
-#     userage = age_var.get()
-#     useremail = email_var.get()
-#     print(f'{username} is {userage} years old , and his email is {useremail}')
-# submit_button = ttk.Button(win , text='Submit' , command=action)
-# submit_button.grid(row=3 , column=0)
+    username = name_var.get()
+    userage = age_var.get()
+    useremail = email_var.get()
+    print(f'{username} is {userage} years old , and his email is {useremail}')
+submit_button = ttk.Button(win , text='Submit' , command=action)
+submit_button.grid(row=3 , column=0)
 
 win.mainloop()
