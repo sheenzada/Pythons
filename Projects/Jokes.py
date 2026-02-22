@@ -1,7 +1,7 @@
 
 # pip install pyjokes
 
-import jokes as pj
+import pyjokes as pj
 
 print("="*30)
 print("Python Jokes Generator")
