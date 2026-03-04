@@ -1,46 +1,51 @@
 import os
 import re
-import openai  # pip install openai
+import openai
 
-# 1. SETUP - Replace with your actual API key
-client = openai.OpenAI(api_key="YOUR_OPENAI_API_KEY")
+# 1. SECURE SETUP
+# This line now looks for the 'OPENAI_API_KEY' you set in your terminal
+api_key = os.getenv("OPENAI_API_KEY")
 
-# 2. DEFINE TOOLS (The "Arms" of the Agent)
+if not api_key or "YOUR_OPE" in api_key:
+    print("❌ Error: API Key not found or still set to placeholder.")
+    print("Please run: $env:OPENAI_API_KEY='your-actual-key-here'")
+    exit()
+
+client = openai.OpenAI(api_key=api_key)
+
+# 2. DEFINE TOOLS
 def get_weather(location):
     """Simulated weather API."""
-    data = {"london": "15°C, Rainy", "new york": "22°C, Sunny", "tokyo": "18°C, Windy"}
-    return data.get(location.lower(), "Weather data not found for this location.")
+    data = {"london": "15", "new york": "22", "tokyo": "18"}
+    return data.get(location.lower(), "20") # Default to 20 if city not found
 
 def calculator(expression):
     """Safely evaluates math."""
     try:
-        # Note: In production, use a safer math parser than eval()
-        return str(eval(expression))
+        # Simple regex to allow only numbers and basic operators for safety
+        clean_expr = re.sub(r'[^0-9\+\-\*\/\.\(\) ]', '', expression)
+        return str(eval(clean_expr))
     except Exception as e:
         return f"Error: {str(e)}"
 
-# Mapping tool names to functions
 available_tools = {
     "get_weather": get_weather,
     "calculator": calculator
 }
 
-# 3. THE BRAIN (System Prompt)
+# 3. THE SYSTEM PROMPT
 SYSTEM_PROMPT = """
-You are a helpful AI Agent that solves problems using tools. 
-You must follow this exact cycle:
-
-Thought: [Your reasoning about what to do next]
-Action: tool_name("input_string")
-Observation: [The result of the tool - this will be provided to you]
-
-... (Repeat Thought/Action/Observation if needed)
-
-Final Answer: [Your final response to the user]
-
+You are a ReAct AI Agent. You solve tasks by thinking and acting.
 Available Tools:
-- get_weather(location): Returns weather for a city. Input must be a string.
-- calculator(expression): Solves math. Input must be a math string like "5 * 5".
+- get_weather(location): Returns temperature in Celsius as a number.
+- calculator(expression): Solves math problems.
+
+Format:
+Thought: <reasoning>
+Action: <tool_name>(<input>)
+Observation: <result from tool>
+... (repeat)
+Final Answer: <the ultimate response>
 """
 
 # 4. THE AGENT LOOP
@@ -50,13 +55,13 @@ def run_agent(user_input):
         {"role": "user", "content": user_input}
     ]
     
-    print(f"\n🚀 Task: {user_input}\n" + "="*30)
+    print(f"\n🚀 Task: {user_input}\n" + "="*40)
 
-    for i in range(5):  # Max iterations to prevent infinite loops
+    for i in range(5):
         response = client.chat.completions.create(
             model="gpt-4o",
             messages=messages,
-            temperature=0 # Keep it deterministic
+            temperature=0
         ).choices[0].message.content
 
         print(f"\n{response}")
@@ -64,28 +69,23 @@ def run_agent(user_input):
         if "Final Answer:" in response:
             return response
 
-        # REGEX to find Action: tool_name("args")
-        action_match = re.search(r"Action:\s*(\w+)\((.*)\)", response)
+        # Robust Regex to extract Action: tool_name("input") or tool_name(input)
+        action_match = re.search(r"Action:\s*(\w+)\((.*?)\)", response)
         
         if action_match:
             tool_name = action_match.group(1)
-            # Clean up arguments (remove quotes)
             tool_input = action_match.group(2).strip().strip('"').strip("'")
             
             if tool_name in available_tools:
-                print(f"🔧 Running tool: {tool_name} with input: {tool_input}")
+                print(f"🔧 [System]: Executing {tool_name}...")
                 observation = available_tools[tool_name](tool_input)
                 
-                # Update history with the thought and the observation
                 messages.append({"role": "assistant", "content": response})
                 messages.append({"role": "user", "content": f"Observation: {observation}"})
             else:
-                messages.append({"role": "user", "content": f"Observation: Tool {tool_name} not found."})
+                messages.append({"role": "user", "content": f"Error: Tool {tool_name} does not exist."})
         else:
-            # If the LLM didn't format the action correctly
             break
-
-    return "Agent failed to find an answer within the step limit."
 
 # 5. EXECUTION
 if __name__ == "__main__":
