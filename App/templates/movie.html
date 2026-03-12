@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+    {% if movie %}
+        <div class="movie-card">
+            <h2>{{ movie.title }} ({{ movie.year }})</h2>
+            <p><strong>Description:</strong> {{ movie.description }}</p>
+            <p>⭐ Rating: {{ movie.rating }}</p>
+            <a href="/">⬅ Back</a>
+        </div>
+    {% else %}
+        <p>Movie not found.</p>
+        <a href="/">Go Home</a>
+    {% endif %}
+{% endblock %}
