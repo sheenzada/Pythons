@@ -1,9 +1,9 @@
-from flask import Flask, request, jsonify
+from flask import Flask, render_template, request, jsonify
 import math
 
 app = Flask(__name__)
 
-# Allowed functions
+# Safe functions
 allowed = {
     "sin": math.sin,
     "cos": math.cos,
@@ -14,8 +14,14 @@ allowed = {
     "factorial": math.factorial,
     "pi": math.pi,
     "e": math.e,
-    "pow": pow
+    "pow": pow,
+    "abs": abs,
+    "round": round
 }
+
+@app.route("/")
+def home():
+    return render_template("index.html")
 
 @app.route("/calculate", methods=["POST"])
 def calculate():
@@ -25,8 +31,8 @@ def calculate():
     try:
         result = eval(expr, {"__builtins__": None}, allowed)
         return jsonify({"result": result})
-    except Exception as e:
-        return jsonify({"error": str(e)})
+    except Exception:
+        return jsonify({"error": "Invalid Expression"})
 
 if __name__ == "__main__":
     app.run(debug=True)

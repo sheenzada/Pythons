@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Quantum Calculator</title>
+
+<style>
+body {
+    margin: 0;
+    height: 100vh;
+    background: radial-gradient(circle at top, #0f172a, #020617);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: 'Segoe UI';
+}
+
+.container {
+    display: flex;
+    gap: 20px;
+}
+
+.calculator {
+    backdrop-filter: blur(20px);
+    background: rgba(255,255,255,0.05);
+    padding: 20px;
+    border-radius: 20px;
+    width: 320px;
+    box-shadow: 0 0 40px rgba(0,255,150,0.2);
+}
+
+.display {
+    width: 100%;
+    height: 60px;
+    font-size: 24px;
+    text-align: right;
+    border: none;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(0,0,0,0.5);
+    color: #00ff9c;
+}
+
+.buttons {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+}
+
+button {
+    padding: 14px;
+    border: none;
+    border-radius: 10px;
+    background: rgba(255,255,255,0.08);
+    color: white;
+    cursor: pointer;
+    transition: 0.2s;
+}
+
+button:hover {
+    background: #00ff9c;
+    color: black;
+    transform: scale(1.05);
+}
+
+.equal {
+    background: #00ff9c;
+    color: black;
+    grid-column: span 2;
+}
+
+.clear {
+    background: #ff4d4d;
+}
+
+.history {
+    width: 200px;
+    height: 400px;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.6);
+    padding: 10px;
+    border-radius: 15px;
+    color: #00ff9c;
+    font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="calculator">
+<input id="display" class="display" readonly>
+
+<div class="buttons">
+<button onclick="press('7')">7</button>
+<button onclick="press('8')">8</button>
+<button onclick="press('9')">9</button>
+<button onclick="press('/')">÷</button>
+<button class="clear" onclick="clearDisplay()">C</button>
+
+<button onclick="press('4')">4</button>
+<button onclick="press('5')">5</button>
+<button onclick="press('6')">6</button>
+<button onclick="press('*')">×</button>
+<button onclick="press('**')">xʸ</button>
+
+<button onclick="press('1')">1</button>
+<button onclick="press('2')">2</button>
+<button onclick="press('3')">3</button>
+<button onclick="press('-')">−</button>
+<button onclick="press('sqrt(')">√</button>
+
+<button onclick="press('0')">0</button>
+<button onclick="press('.')">.</button>
+<button onclick="press('+')">+</button>
+<button onclick="press('pi')">π</button>
+<button onclick="press('e')">e</button>
+
+<button onclick="press('sin(')">sin</button>
+<button onclick="press('cos(')">cos</button>
+<button onclick="press('tan(')">tan</button>
+<button onclick="press('log(')">log</button>
+<button onclick="press('ln(')">ln</button>
+
+<button class="equal" onclick="calculate()">=</button>
+</div>
+</div>
+
+<div class="history" id="history">
+<b>History</b><br>
+</div>
+
+</div>
+
+<script>
+function press(val) {
+    document.getElementById("display").value += val;
+}
+
+function clearDisplay() {
+    document.getElementById("display").value = "";
+}
+
+function calculate() {
+    let expression = document.getElementById("display").value;
+
+    fetch("/calculate", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ expression })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let display = document.getElementById("display");
+
+        if (data.result !== undefined) {
+            addHistory(expression + " = " + data.result);
+            display.value = data.result;
+        } else {
+            display.value = "Error";
+        }
+    });
+}
+
+function addHistory(text) {
+    let history = document.getElementById("history");
+    history.innerHTML += "<div>" + text + "</div>";
+}
+
+// Keyboard support
+document.addEventListener("keydown", function(e) {
+    if (!isNaN(e.key) || "+-*/.".includes(e.key)) {
+        press(e.key);
+    } else if (e.key === "Enter") {
+        calculate();
+    } else if (e.key === "Backspace") {
+        let val = document.getElementById("display").value;
+        document.getElementById("display").value = val.slice(0, -1);
+    }
+});
+</script>
+
+</body>
+</html>
