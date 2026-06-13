@@ -1,7 +1,11 @@
 from fastapi import FastAPI
 from sqlalchemy.orm import Session
 
-from database import Base, engine, SessionLocal
+# from database import Base, engine, SessionLocal
+
+from app.database import Base, engine, SessionLocal
+from app.schemas import OrderCreate, DriverCreate
+from app.crud import create_order, get_orders, create_driver, get_drivers
 
 from schemas import OrderCreate, DriverCreate
 from crud import (
