@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Chicken Alfredo Pasta",
+    "cuisine": "Italian",
+    "prep_time_mins": 25,
+    "difficulty": "Medium",
+    "ingredients": ["chicken", "pasta", "cream", "garlic", "parmesan"],
+    "instructions": [
+      "Boil the pasta according to package instructions.",
+      "Sauté diced chicken and minced garlic in a pan until cooked.",
+      "Pour in heavy cream and bring to a simmer, then mix in parmesan cheese.",
+      "Toss the pasta in the sauce and serve hot."
+    ]
+  },
+  {
+    "name": "Quick Garlic Fried Rice",
+    "cuisine": "Asian",
+    "prep_time_mins": 15,
+    "difficulty": "Easy",
+    "ingredients": ["rice", "garlic", "soy sauce", "egg", "oil"],
+    "instructions": [
+      "Heat oil in a wok and fry minced garlic until golden brown.",
+      "Add scrambled egg and pre-cooked cold rice.",
+      "Drizzle soy sauce and stir-fry on high heat for 5 minutes."
+    ]
+  }
+]
