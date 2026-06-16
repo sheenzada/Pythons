@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "The Dark Knight",
+    "genres": ["Action", "Crime", "Drama"],
+    "keywords": ["batman", "joker", "vigilante", "dc comics", "dark"],
+    "rating": 9.0,
+    "overview": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice."
+  },
+  {
+    "id": 2,
+    "title": "Inception",
+    "genres": ["Action", "Sci-Fi", "Adventure"],
+    "keywords": ["dreams", "heist", "subconscious", "mind bending"],
+    "rating": 8.8,
+    "overview": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O."
+  },
+  {
+    "id": 3,
+    "title": "Interstellar",
+    "genres": ["Sci-Fi", "Drama", "Adventure"],
+    "keywords": ["space", "black hole", "nasa", "time travel", "galaxy"],
+    "rating": 8.6,
+    "overview": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival on a dying Earth."
+  },
+  {
+    "id": 4,
+    "title": "The Godfather",
+    "genres": ["Crime", "Drama"],
+    "keywords": ["mafia", "sicily", "family business", "organized crime"],
+    "rating": 9.2,
+    "overview": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son."
+  },
+  {
+    "id": 5,
+    "title": "The Matrix",
+    "genres": ["Action", "Sci-Fi"],
+    "keywords": ["simulation", "hacker", "cyberpunk", "dystopia", "artificial intelligence"],
+    "rating": 8.7,
+    "overview": "A computer hacker learns from mysterious rebels about the true nature of his reality and his role in the war against its controllers."
+  }
+]
