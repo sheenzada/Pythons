@@ -1,12 +1,12 @@
 from turtle import *
 import colorsys as cs
 
-tracer (50)
-bgcolor("black")
+tracer (60)
+bgcolor("purple")
 hideturtle()
 pensize(1.5)
 
-for i in  range(400):
+for i in  range(600):
     color(cs.hsv_to_rgb(i / 450 , 1 ,1))
     circle(i* 0.4, 120)
     right(70)

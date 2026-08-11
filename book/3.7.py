@@ -1,0 +1,13 @@
+import turtle
+turtle.reset()
+turtle.color("red")
+turtle.forward(140)
+turtle.left(135)
+turtle.color("orange")
+turtle.forward(100)
+turtle.left(90)
+turtle.color("pink")
+turtle.forward(100)
+turtle.left(45)
+turtle.color("green")
+turtle.left(90)
